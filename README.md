@@ -1,5 +1,5 @@
-# Sql server
+# SQL Server
 
-Some notes on  SQL server, written in LaTeX.
+Notizen zu T-SQL und SQL Server, in LaTeX gesetzt.
 
 Feel free to use it for whatever non-commercial purpose.

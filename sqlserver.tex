@@ -3,6 +3,7 @@
 % arara: biber
 % arara: makeindex
 % arara: pdflatex: {shell: yes}
+% arara: pdflatex: {shell: yes}
 
 \documentclass[12pt,ngerman,a4paper,index=totoc,twoside]{scrartcl}
 \usepackage[utf8]{inputenc}
@@ -13,6 +14,27 @@
 \usepackage{booktabs}
 \usepackage{paralist}
 \usepackage{attachfile}
+\DeclareTOCStyleEntry[
+   linefill=\TOCLineLeaderFill,
+   entryformat=\normalfont,
+   pagenumberformat=\normalfont,
+   beforeskip=0pt plus .2pt,
+   numwidth=6em
+]{tocline}{chapter}
+\DeclareTOCStyleEntry[
+   linefill=\TOCLineLeaderFill,
+   entryformat=\normalfont,
+   pagenumberformat=\normalfont,
+   beforeskip=0pt plus .2pt,
+   numwidth=2em
+]{tocline}{section}
+\DeclareTOCStyleEntry[
+   linefill=\TOCLineLeaderFill,
+   entryformat=\normalfont,
+   pagenumberformat=\normalfont,
+   beforeskip=0pt plus .2pt,
+   numwidth=3em
+]{tocline}{subsection}
 
 \usepackage{listings}
 \lstset{literate=%
