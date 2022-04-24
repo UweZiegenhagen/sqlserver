@@ -1,0 +1,1898 @@
+%!TEX TS-program = Arara
+% arara: pdflatex: {shell: yes}
+% arara: biber
+% arara: makeindex
+% arara: pdflatex: {shell: yes}
+
+\documentclass[12pt,ngerman,a4paper,index=totoc,twoside]{scrartcl}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{babel}
+\usepackage{booktabs}
+\usepackage{paralist}
+\usepackage{attachfile}
+
+\usepackage{listings}
+\lstset{literate=%
+    {Ö}{{\"O}}1
+    {Ä}{{\"A}}1
+    {Ü}{{\"U}}1
+    {ß}{{\ss}}1
+    {ü}{{\"u}}1
+    {ä}{{\"a}}1
+    {ö}{{\"o}}1
+    {~}{{\textasciitilde}}1
+}
+
+
+\usepackage[utopia]{mathdesign}
+
+\usepackage{microtype} 
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage[scaled=0.9]{helvet}
+
+
+%\usepackage[style=authoryear,hyperref=true,natbib=true,sorting=nyt,block=space]{biblatex}
+\usepackage[style=authortitle-icomp,backend=biber]{biblatex}%
+\usepackage[babel,german=guillemets]{csquotes}
+\bibliography{bibliography}
+
+%\newcommand{\code}[1]{\textattachfile{#1}{\textcolor{blue}{CODE}}}
+%\newcommand{\code}[1]{\textattachfile{#1}{\protect\raisebox{-0.13em}{\protect\includegraphics{sql_fileextension.pdf}}}}
+
+\newcommand{\code}[1]{{\protect\raisebox{-0.13em}{\protect\includegraphics{sql_fileextension.pdf}}}}
+
+\newcommand{\insertsql}[3]{\lstinputlisting[language={SQL},caption={#1 \code{#2}},label={#3}] {#2}}
+
+\definecolor{hint}{RGB}{191,63,0}
+
+\newcommand{\vari}[1]{\textless#1\textgreater}
+
+
+
+\definecolor{hellgelb}{rgb}{1,1,0.8}
+\definecolor{colKeys}{rgb}{0,0,1}
+\definecolor{colIdentifier}{rgb}{0,0,0}
+\definecolor{colComments}{rgb}{1,0,0}
+\definecolor{colString}{rgb}{0,0.5,0}
+
+\newcommand{\indexlink}[1]{\index{#1\protect\hypertarget{#1}{}}\hyperlink{#1}{#1}}
+
+\lstset{%
+    float=hbp,%
+    basicstyle=\ttfamily\small, %
+    identifierstyle=\color{colIdentifier}, %
+    keywordstyle=\color{colKeys}, %
+    stringstyle=\color{colString}, %
+    commentstyle=\color{colComments}, %
+    columns=flexible, %
+    tabsize=2, %
+    frame=single, %
+    extendedchars=true, %
+    showspaces=false, %
+    showstringspaces=false, %
+    numbers=left, %
+    numberstyle=\tiny, %
+    breaklines=true, %
+    backgroundcolor=\color{hellgelb}, %
+    breakautoindent=true, %
+    captionpos=b%
+}
+
+\newcommand{\hint}[1]{\textcolor{hint}{\texttt{#1}}}
+\newcommand{\hintb}[1]{\textcolor{hint}{\textbackslash\texttt{#1}}}
+\newcommand{\hintk}[1]{\textcolor{hint}{\textit\texttt{#1}}}
+
+
+\newcommand{\sql}[1]{\texttt{#1}}
+
+\usepackage[]{caption}
+\setlength{\parindent}{0pt}
+
+\usepackage{scrlayer-scrpage}
+\clearscrheadings
+\pagestyle{scrheadings}
+
+\lehead{T-SQL}
+\lohead{\today}
+\rehead{\headmark}
+\rohead{\headmark}
+\cfoot{\pagemark}
+
+
+\author{Uwe Ziegenhagen}
+\title{SQL Server \& T-SQL}
+
+\usepackage{hyperref}
+\usepackage{url}
+\hypersetup{%
+  colorlinks=true,   % aktiviert farbige Referenzen
+  linkcolor = blue,  % Linkfarbe blau
+  citecolor = blue,  % cite-Farbe blau
+  urlcolor = blue,  % cite-Farbe blau
+  pdfpagemode=UseNone,  % PDF-Viewer startet ohne Inhaltsverzeichnis et.al.
+  pdfstartview=FitH} % PDF-Viewer benutzt beim Start bestimmte Seitenbreite
+
+%\hypersetup{% �=\304; �=\326; �=\334; �=\344; �=\366; �=\374; �=\377
+%  pdftitle={SQL Server Tutorial},
+%  pdfauthor={Uwe Ziegenhagen},
+%  pdfsubject={Microsoft SQL Server},
+%  pdfkeywords={Microsoft, SQL}
+%}
+
+\newcommand{\lwidth}{0.75}
+
+
+
+\usepackage{makeidx}
+\makeindex 
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+\listoftables
+
+\clearpage
+
+\section{T-SQL 'Good Practices'}
+
+\cite{knigge} listet eine Reihe von 'good practises' für T-SQL, hier ein verkürzter Überblick:
+
+\begin{description}
+	\item[Gezielter Umbruch] 
+
+Durch gezielten Umbruch kann T-SQL deutlich lesbarer gestaltet werden.
+	
+	\item[Schlüsselwörter groß schreiben] 
+	
+Alle T-SQL-Schlüsselwörter groß schreiben.	
+	
+	\item[Keine Schlüsselwörter, Leerzeichen oder Sonderzeichen verwenden] 
+	
+Der SQL Server lässt es zwar oft zu, aber Schlüsselwörter, Leerzeichen oder Umlaute sollten nicht als Spaltennamen verwendet werden.
+	
+	\item[Kein SELECT *] 
+	
+Die Verwendung von SELECT * sollte aus Effizienzgründen möglich vermieden werden.
+	
+	\item[IdentitiyCol] 
+	
+Wenn auf die Identitätsspalte einer Tabelle zugegriffen wird, sollte nicht deren Name angegeben werden, sondern der Alias \sql{IdentityCol}. \index{IdentityCol}	
+	
+	\item[Ordnung muss sein] 
+	
+Wird bei der Weiterverarbeitung eine bestimmte Reihenfolge benötigt, sollte auf jeden Fall ein \sql{ORDER BY} angegeben werden. \index{ORDER BY}
+	
+	\item[Alias] 
+	
+Insbesondere bei der Arbeit mit mehreren Tabellen sollte ein \sql{Alias} angegeben werden, da dies Mehrdeutigkeiten verringert und die Lesbarkeit erhöht.
+	
+	\item[Groß- und Kleinschreibung bei Filter mittels = und LIKE] 
+
+Standardmäßig führt der SQL Server \sql{=} und \sql{LIKE} Vergleiche ohne Berücksichtigung von Groß- und Kleinschreibung durch. Will man explizit ein Suchverhalten festlegen, kann man die Einstellung gemäß Listing \ref{collate:grossklein} definieren.
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Groß- und Kleinschreibung bei Suchanfragen},label={collate:grossklein}]
+// Berücksichtige Groß- und Kleinschreibung
+SELECT * FROM Personen WHERE Nachname =
+'Schmidt' COLLATE SQL_Latin1_General_CP1_CS_AS
+
+// Berücksichtige Groß- und Kleinschreibung nicht
+SELECT * FROM Personen WHERE Nachname =
+'Schmidt' COLLATE Latin1_General_CI_AS
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{COLLATE} \index{Gross- und Kleinschreibung}
+
+\item[Benötigte Größe und Genauigkeit festlegen] 
+	
+Dezimalstellen und Genauigkeit von Dezimaldatentypen sollte man immer festlegen, da sonst Standardeinstellungen mit nicht genau festgelegten Werten für Genauigkeit und Ganzzahlen genutzt werden. Bei Variablenzuweisungen und Wertvergleichen kann mit \sql{CONVERT} \index{CONVERT} sichergestellt werden, dass eine einheitliche Genauigkeit genutzt wird. 
+
+Wird kein Unicode benötigt, sollten Unicode-Spaltentypen wie \sql{NCHAR} oder \sql{NVARCHAR} nicht genutzt werden, da diese den im Vergleich zu \sql{CHAR} oder \sql{VARCHAR} doppelten Speicherplatz brauchen. 
+
+\item[Systemkomponenten] 
+	
+Zugriffe auf Systemkomponenten sollten unterbleiben, da es oftmals auch 'legale' Wege des Zugriffs gibt. Beispiel:
+
+\begin{center}
+\begin{minipage}{0.75\textwidth}
+\begin{lstlisting}[language={SQL},caption={Zugriffe auf Metainformationen der Datenbank},label={sysobjects1}]
+// SCHLECHT
+SELECT [name] FROM sysobjects WHERE xtype='U'
+
+// GUT
+SELECT table_name from INFORMATION_SCHEMA.TABLES
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{SYSOBJECTS} \index{INFORMATION\textunderscore SCHEMA.TABLES}
+
+Siehe dazu auch \cite{katalogsichten} für einen Überblick, wie man an Metainformationen der Datenbank kommt. 
+	
+\item[Vergleiche mit NULL] 
+	
+Vergleiche und Rechenoperationen von einem Wert und \sql{NULL} sollten unterbleiben. Stattdessen muss \sql{NULL}, \sql{IS NULL} oder \sql{ISNULL()} verwandt werden, um keine seltsamen Resultate zu erhalten.
+	
+\item[Fehler!] \index{@@ERROR}
+	
+In \sql{@@ERROR} wird die letzte Fehlermeldung gespeichert. Dieser Wert wird aber mit jedem neuen fehlerlosen SQL Statement überschrieben, wenn sie nicht direkt nach der den Fehler erzeugenden SQL Anweisung zwischengespeichert wird. Also: lokale Variable deklarieren, nach einer fehlerträchtigen Anweisung zwischenspeichern, danach auswerten. 
+
+
+\item[SET NOCOUNT ON/OFF] 
+	
+Die Anzahl der betroffenen Zeilen ist oftmals unwichtig, daher sollte bei Stored Procedures am Anfang ein \sql{SET NOCOUNT ON} stehen, am Ende dann ein \sql{SET NOCOUNT OFF}. \index{NOCOUNT}
+	
+\item[Gespeicherte Prozeduren] 
+	
+Gespeicherte Prozeduren sollten nicht mit \sql{SP\textunderscore} beginnen, da sonst zuerst in der Master-Datenbank und in den Systemtabellen der aktuellen Datenbank gesucht wird. Einzelne Rückgabewerte sollten nicht per \sql{SELECT} sondern per \sql{OUTPUT} oder \sql{RETURN} zurückgegeben werden. \index{OUTPUT} \index{RETURN}
+	
+\item[Temporäre Tabellen] 
+	
+Wenn temporäre Tabellen nicht vermieden werden können (z.B. durch TABLE Variablen), gilt: Erstellung am Anfang, drop am Ende. 
+	
+\item[Kommentare] 
+	
+Kommentare, Kommentare, Kommentare!
+	
+\item[Vorlagen] 
+
+Vorlagen sind hilfreich, um ein einheitliches Erscheinungsbild zu gewährleisten. Im Vorlagen-Explorer (Strg+Alt+T) kann man Vorlagen verwalten und neu erstellen.
+
+\end{description}
+
+\section{T-SQL Schlüsselwörter}
+
+Die folgenden Wörter sind T-SQL Schlüsselwörter und sollten nicht als Variablennamen genutzt werden. 
+
+\begin{center}
+\captionsetup{type=table}
+\caption{T-SQL Schlüsselwörter Teil 1}
+\begin{tabular}{p{5cm}p{5cm}p{5cm}} 
+\indexlink{ADD} & \indexlink{EXISTS} & \indexlink{PRECISION} \\ 
+\indexlink{ALL} & \indexlink{EXIT} & \indexlink{PRIMARY} \\ 
+\indexlink{ALTER} & \indexlink{EXTERNAL} & \indexlink{PRINT} \\ 
+\indexlink{AND} & \indexlink{FETCH} & \indexlink{PROC}\\ 
+\indexlink{ANY} & \indexlink{FILE} & \indexlink{PROCEDURE} \\ 
+\indexlink{AS} & \indexlink{FILLFACTOR} & \indexlink{PUBLIC} \\ 
+\indexlink{ASC} & \indexlink{FOR} & \indexlink{RAISERROR} \\ 
+\indexlink{AUTHORIZATION} & \indexlink{FOREIGN} & \indexlink{READ} \\ 
+\indexlink{BACKUP} & \indexlink{FREETEXT} & \indexlink{READTEXT} \\ 
+\indexlink{BEGIN} & \indexlink{FREETEXTTABLE} & \indexlink{RECONFIGURE} \\ 
+\indexlink{BETWEEN} & \indexlink{FROM} & \indexlink{REFERENCES} \\ 
+\indexlink{BREAK} & \indexlink{FULL} & \indexlink{REPLICATION} \\ 
+\indexlink{BROWSE} & \indexlink{FUNCTION} & \indexlink{RESTORE} \\ 
+\indexlink{BULK} & \indexlink{GOTO} & \indexlink{RESTRICT} \\ 
+\indexlink{BY} & \indexlink{GRANT} & \indexlink{RETURN} \\ 
+\indexlink{CASCADE} & \indexlink{GROUP} & \indexlink{REVERT} \\ 
+\indexlink{CASE} & \indexlink{HAVING} & \indexlink{REVOKE} \\ 
+\indexlink{CHECK} & \indexlink{HOLDLOCK} & \indexlink{RECHTS} \\ 
+\indexlink{CHECKPOINT} & \indexlink{IDENTITY} & \indexlink{ROLLBACK} \\ 
+\indexlink{CLOSE} & \indexlink{IDENTITY\textunderscore INSERT} & \indexlink{ROWCOUNT} \\ 
+\indexlink{CLUSTERED} & \indexlink{IDENTITYCOL} & \indexlink{ROWGUIDCOL} \\ 
+\indexlink{COALESCE} & \indexlink{IF} & \indexlink{RULE} \\ 
+\indexlink{COLLATE} & \indexlink{IN} & \indexlink{SAVE} \\ 
+\indexlink{COLUMN} & \indexlink{INDEX} & \indexlink{SCHEMA} \\ 
+\indexlink{COMMIT} & \indexlink{INNER} & \indexlink{SECURITYAUDIT} \\ 
+
+\end{tabular}
+\end{center}
+
+\clearpage
+
+\begin{center}
+\captionsetup{type=table}
+\caption{T-SQL Schlüsselwörter Teil 2}
+\begin{tabular}{p{5cm}p{5cm}p{5cm}}  
+\indexlink{COMPUTE} & \indexlink{INSERT} & \indexlink{SELECT} \\ 
+\indexlink{CONSTRAINT} & \indexlink{INTERSECT} & \indexlink{SESSION\textunderscore USER} \\ 
+\indexlink{CONTAINS} & \indexlink{INTO} & \indexlink{SET} \\ 
+\indexlink{CONTAINSTABLE} & \indexlink{IS} & \indexlink{SETUSER} \\ 
+\indexlink{CONTINUE} & \indexlink{JOIN} & \indexlink{SHUTDOWN} \\ 
+\indexlink{CONVERT} & \indexlink{KEY} & \indexlink{SOME} \\ 
+\indexlink{CREATE} & \indexlink{KILL} & \indexlink{STATISTICS} \\ 
+\indexlink{CROSS} & \indexlink{LEFT} & \indexlink{SYSTEM\textunderscore USER} \\ 
+\indexlink{CURRENT} & \indexlink{LIKE} & \indexlink{TABLE} \\ 
+\indexlink{CURRENT\textunderscore DATE} & \indexlink{LINENO} & \indexlink{TABLESAMPLE} \\ 
+\indexlink{CURRENT\textunderscore TIME} & \indexlink{LOAD} & \indexlink{TEXTSIZE} \\ 
+\indexlink{CURRENT\textunderscore TIMESTAMP} & \indexlink{MERGE} & \indexlink{THEN} \\ 
+\indexlink{CURRENT\textunderscore USER} & \indexlink{NATIONAL} & \indexlink{TO} \\ 
+\indexlink{CURSOR} & \indexlink{NOCHECK} &  \indexlink{TOP} \\
+\indexlink{DATABASE} & \indexlink{NONCLUSTERED} & \indexlink{TRAN} \\ 
+\indexlink{DBCC} & \indexlink{NOT} & \indexlink{TRANSACTION} \\ 
+\indexlink{DEALLOCATE} & \indexlink{NULL} & \indexlink{TRIGGER} \\ 
+\indexlink{DECLARE} & \indexlink{NULLIF} & \indexlink{TRUNCATE} \\ 
+\indexlink{DEFAULT} & \indexlink{OF} & \indexlink{TSEQUAL} \\ 
+\indexlink{DELETE} & \indexlink{OFF} & \indexlink{UNION} \\ 
+\indexlink{DENY} & \indexlink{OFFSETS} & \indexlink{UNIQUE} \\ 
+\indexlink{DESC} & \indexlink{ON} & \indexlink{UNPIVOT} \\ 
+\indexlink{DISK} & \indexlink{OPEN} & \indexlink{UPDATE} \\ 
+\indexlink{DISTINCT} & \indexlink{OPENDATASOURCE} & \indexlink{UPDATETEXT} \\ 
+\indexlink{DISTRIBUTED} & \indexlink{OPENQUERY} & \indexlink{USE} \\ 
+\indexlink{DOUBLE} & \indexlink{OPENROWSET} & \indexlink{USER} \\ 
+\end{tabular}
+\end{center}
+
+
+\begin{center}
+\captionsetup{type=table}
+\caption{T-SQL Schlüsselwörter Teil 3}
+\begin{tabular}{p{5cm}p{5cm}p{5cm}}  
+\indexlink{DROP} & \indexlink{OPENXML} & \indexlink{VALUES} \\ 
+\indexlink{DUMP} & \indexlink{OPTION} & \indexlink{VARYING} \\ 
+\indexlink{ELSE} & \indexlink{OR} & \indexlink{VIEW} \\ 
+\indexlink{END} & \indexlink{ORDER} & \indexlink{WAITFOR} \\ 
+\indexlink{ERRLVL} & \indexlink{OUTER} & \indexlink{WHEN} \\ 
+\indexlink{ESCAPE} & \indexlink{OVER} & \indexlink{WHERE} \\ 
+\indexlink{EXCEPT} & \indexlink{PERCENT} & \indexlink{WHILE} \\ 
+\indexlink{EXEC} & \indexlink{PIVOT} & \indexlink{WITH} \\ 
+\indexlink{EXECUTE} & \indexlink{PLAN} & \indexlink{WRITETEXT} \\ 
+\end{tabular}
+\end{center}
+
+\section{Datenbankwartung}
+
+Eine SQL-Server Datenbank besteht aus mindestens zwei Dateien, der MDF-Datei für die Datenbankinhalte und der LDF-Datei, die zur Protokollierung dient. 
+
+\begin{center}
+\begin{minipage}{0.75\textwidth}
+\begin{lstlisting}[language={SQL},caption={einfachste \sql{CREATE DATABASE} Abfrage},label={create1:create1}]
+CREATE DATABASE name
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{CREATE!DATABASE}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\insertsql{\sql{CREATE DATABASE} mit kompletter Angabe}{./codes/createdatabase.sql}{create1:create2}
+\end{minipage}
+\end{center}\index{CREATE!DATABASE}
+
+Listing \ref{create1:create2} erstellt die Datenbank \sql{Buchladen} in der primären Dateigruppe. Die Datenbank selbst wird in zwei Dateien gespeichert, \sql{Buchladen2.ndf} dient nur der sekundären Speicherung. Benutzerdefinierte Dateigruppen nutzt man in 'very large databases' (VLDB), für normale Anforderungen ist \sql{PRIMARY}. 
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Informationen zur Datenbank 'dbname' abfragen},label={create1:sphelpdb1}]
+EXEC sp_helpdb 'dbname'
+GO
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{sp\textunderscore helpdb}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Informationen zur Tabelle 'tname' abfragen},label={create1:sphelptable1}]
+EXEC sp_helptable 'tname'
+GO
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{sp\textunderscore helptable}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Informationen zu den Spalten der Tabelle 'tname' abfragen},label={create1:spcolumns1}]
+EXEC sp_columns  'tname'
+GO
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{sp\textunderscore columns}
+
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={\sql{sp\textunderscore executesql } Statement},label={create1:spexecutesql1}]
+sp_executesql 
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{sp\textunderscore executesql}
+
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+\begin{lstlisting}[caption={Ergebnis von Listing \ref{create1:sphelpdb1}},basicstyle={\ttfamily\tiny},label={create1:sphelpdb1a}]
+name   db_size    owner   dbid   created  status          compatibility_level
+------ ------------- ---------- ------ ----------- ---------------------------------- ----------------------
+test   4.00 MB CORE\Uwe   5   Okt 31 2008 Status=ONLINE,       90
+                Updateability=READ_WRITE, 
+                UserAccess=MULTI_USER, 
+                Recovery=SIMPLE, Version=611, 
+                Collation=Latin1_General_CI_AS,
+                SQLSortOrder=0, 
+                IsAutoCreateStatistics, 
+                IsAutoUpdateStatistics, 
+                IsFullTextEnabled 
+
+name    fileid filename     filegroup  size   maxsize  growth   usage
+---------- ------ --------------------------- ---------- --------- -------------- -------- ---------
+test    1   G:\_SQLserver\test.mdf   PRIMARY 3072 KB   Unlimited   1024 KB  data only
+test_log   2   G:\_SQLserver\test_log.ldf  NULL    1024 KB   2147483648 KB  10%   log only
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{sp\textunderscore helpdb}
+
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Informationen zur Datenbank 'name' abfragen},label={create1:sphelpdb2}]
+EXEC sp_dboption 'test'
+GO
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{sp\textunderscore helpdb}
+
+
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+\begin{lstlisting}[caption={Ergebnis von Listing \ref{create1:sphelpdb2}},basicstyle={\ttfamily\small},label={create1:sphelpdb2a}]
+The following options are set:
+-----------------------------------
+trunc. log on chkpt.
+auto create statistics
+auto update statistics
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{sp\textunderscore helpdb}
+
+
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={\sql{ALTER DATABASE} Abfrage},label={create1:alter1}]
+ALTER DATABASE name
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{ALTER!DATABASE}
+
+
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={\sql{DELETE DATABASE} Abfrage},label={create1:delete1}]
+DELETE DATABASE name
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{DELETE!DATABASE}
+
+Datenbanken sollten nur über T-SQL oder den Manager gelöscht werden, nicht über das Dateisystem.
+
+\section{Tabellen anlegen}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\insertsql{\sql{CREATE TABLE} mit EXISTS Abfrage}{./codes/createdatabase2.sql}{create2:create1}
+\end{minipage}
+\end{center}\index{CREATE!TABLE}
+
+
+\section{Constraints}
+
+
+%DECLARE @MyTable TABLE(
+%  ProductID int UNIQUE,
+%  Price money CHECK(Price < 10.0)
+%)
+
+%DECLARE @MyTable TABLE(
+%  ProductID int IDENTITY(1,1) PRIMARY KEY,
+%  Name varchar(10) NOT NULL DEFAULT('Unknown')
+%)
+
+\subsection{PRIMARY KEY} \index{CONSTRAINTS!PRIMARY KEY} \index{PRIMARY KEY}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={\sql{ALTER TABLE} Abfrage um einen \sql{PRIMARY KEY} anzulegen},label={create3:alter1}]
+ALTER TABLE Kunden
+ADD CONSTRAINT PK_KUNDEN
+PRIMARY KEY (KundenID)
+GO
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{ALTER!TABLE} \index{TABLE!ALTER} 
+
+
+\subsection{FOREIGN KEY} \index{FOREIGN KEY} \index{CONTRAINTS!FOREIGN KEY}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={\sql{ALTER TABLE} Abfrage, um einen \sql{FOREIGN KEY} anzulegen}, label={create3:alter2}]
+ALTER TABLE Bestellung
+ADD CONSTRAINT FK_BESTELLTBEI
+FOREIGN KEY (BestellerID)
+REFERENCES Kunden(KundenID)
+GO
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{INSERT}
+
+\subsection{IDENTITY} \index{IDENTITY} \index{CONTRAINTS!IDENTITY}
+
+\subsection{UNIQUE} \index{UNIQUE} \index{CONSTRAINTS!UNIQUE}
+
+\subsection{CHECK} \index{CHECK} \index{CONSTRAINTS!CHECK}
+
+\subsection{NOT NULL} \index{NOT NULL} \index{CONSTRAINTS!NOT NULL} 
+
+\subsection{DEFAULT} \index{DEFAULT} \index{CONSTRAINTS!DEFAULT} 
+
+\section{\sql{INSERT} und \sql{DELETE}}
+
+
+
+\section{Einfache Abfragen}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={einfache \sql{SELECT} Abfrage},label={abfragen1:select1}]
+SELECT * FROM kunden;
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{SELECT}
+
+\section{Abfragen aus mehreren Tabellen}
+
+\subsection{INNER JOINS}
+
+\subsubsection{Implizite Schreibweise}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\insertsql{Schreibweise eines \sql{Implicit Join}}{./codes/implicitjoin.sql}{abfragen2:join1}
+\end{minipage}
+\end{center}\index{JOIN}
+
+\subsubsection{Explizite Schreibweise}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\insertsql{Explizite Schreibweise eines \sql{INNER JOIN}}{./codes/innerjoin.sql}{abfragen2:join2}
+\end{minipage}
+\end{center}\index{JOIN!INNER}
+
+Der INNER JOIN führt Datensätze aus der linken und rechten Tabelle genau dann zusammen, wenn die angegebenen Kriterien alle erfüllt sind. Ist mindestens eins der Kriterien nicht erfüllt, so entsteht kein Datensatz in der Ergebnismenge. Durch den Einsatz dieses \sql{JOIN} reduziert sich das Ergebnis des kartesischen Produktes auf ein Minimum (vergleiche auch nachfolgende Join-Varianten).
+
+\subsection{LEFT JOINS}
+
+Die Logik lautet für den LEFT JOIN: Ein Datensatz aus der linken Tabelle kommt in jedem Fall in das Ergebnis. Wenn ein Datensatz der rechten Tabelle dem ON-Kriterium entspricht, so wird er entsprechend in den Spalten eingetragen, ansonsten bleiben die Spalten leer (null). Der RIGHT JOIN arbeitet genau entgegengesetzt.
+
+Gesucht werden alle Rechnungen vom Oktober. Falls sie per Kreditkarte bezahlt wurden, so sollen die Kartendaten ebenfalls ausgegeben werden. 
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\insertsql{Beispiel für einen \sql{LEFT JOIN}}{./codes/leftjoin.sql}{abfragen2:join3}
+\end{minipage}
+\end{center}\index{JOIN!LEFT}
+
+
+
+\subsection{RIGHT JOIN}
+
+Gesucht werden alle Karteninformationen. Falls mit der entsprechenden Kreditkarte im Oktober etwas bestellt wurde, sollen die Rechnungsinformationen beigefügt werden.
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\insertsql{Beispiel für einen \sql{RIGHT JOIN}}{./codes/rightjoin.sql}{abfragen2:join4}
+\end{minipage}
+\end{center}\index{JOIN!RIGHT}
+
+\subsection{FULL OUTER JOIN}
+
+Der \sql{FULL OUTER JOIN} kommt dem ursprünglichen Kreuzprodukt von allen Joins am nächsten. Er ist gewissermaßen die Kombination aus \sql{LEFT} und \sql{RIGHT JOIN}.
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\insertsql{Beispiel für einen \sql{OUTER JOIN}}{./codes/outerjoin.sql}{abfragen2:join5}
+\end{minipage}
+\end{center}\index{JOIN!OUTER}
+
+Gesucht werden sowohl alle Karteninformationen als auch alle Rechnungen. Sofern möglich sollen dabei Rechnungen und Karten kombiniert werden.
+
+\section{SQL Funktionen}
+
+\subsection{Aggregatfunktionen}
+
+\subsubsection{AVG()} \index{AVG}
+
+Berechnet das arithmetische Mittel einer Spalte.
+
+\subsubsection{MIN()} \index{MIN}
+
+Gibt das Minimum einer Spalte aus.
+
+\subsubsection{CHECKSUM\textunderscore AGG()} \index{CHECKSUM}
+
+Kann benutzt werden, um Änderungen an einer Tabelle festzustellen. Siehe dazu auch \url{http://www.mssqltips.com/tip.asp?tip=1023}.
+
+\subsubsection{SUM()} \index{SUM}
+
+Summiert eine Spalte. Für das Produkt einer Spalte siehe Abschnitt \ref{trick:produkt}.
+
+\subsubsection{COUNT()} \index{COUNT}
+
+Zählt die Einträge einer Spalte, die nicht NULL sind.
+
+\subsubsection{STDEV()} \index{STDEV}
+
+Errechnet die Standardabweichung einer Spalte für eine Stichprobe.
+
+\subsubsection{COUNT\textunderscore BIG()} \index{COUNT\textunderscore BIG}
+
+Wie \sql{COUNT}, gibt aber eine Zahl vom Typ \sql{BIG} zurück.
+
+\subsubsection{STDEVP()} \index{STDEVP}
+
+Errechnet die Standardabweichung einer Population.
+
+\subsubsection{GROUPING()} \index{GROUPING}
+
+Eine Aggregatfunktion die zusammen mit \sql{CUBE} und \sql{ROLLUP} Operatoren genutzt wird.
+
+\subsubsection{VAR()} \index{VAR}
+
+Berechnet die Varianz einer Stichprobe.
+
+\subsubsection{MAX()} \index{MAX}
+
+Gibt das Maximum einer Spalte zurück.
+
+\subsubsection{VARP()} \index{VARP}
+
+Errechnet die Varianz einer Grundgesamtheit.
+
+\subsection{Datumsfunktionen}
+
+\subsubsection{DATEADD(datepart, number, date)} \index{DATEADD}
+
+Gibt ein neues Datum zurück, das auf dem Hinzufügen eines Zeitintervalls zum angegebenen Datum basiert. \hint{datepart} ist einer der Parameter aus Tabelle \ref{aaa}, \hint{number} eine ganze Zahl, \hint{date} das Basisdatum.
+ 
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Beispiel für \sql{DATEADD}},label={funktionen:dateadd1}]
+Select DATEADD(week,1,getdate())
+Select DATEADD(day,2,getdate())
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{DATEADD}
+
+
+\subsubsection{DATENAME()} \index{DATENAME}
+
+\subsubsection{DATEDIFF()} \index{DATEDIFF}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Beispiel für \sql{DATEDIFF}},label={funktionen:datediff1}]
+DATEDIFF(datumsteil,anfang,ende) 
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{DATEDIFF}
+
+\sql{datumsteil} kann folgende Werte annehmen:
+
+\begin{center}
+\captionsetup{type=table}
+\caption{Mögliche Werte für \sql{DATEDIFF()}}
+\begin{tabular}{lll} \toprule \label{aaa}
+Einheit & SQL-Parameter & Abkürzung \\ \midrule
+Jahr & year&	yy, yyyy \\
+Quartal &	quarter & qq, q \\
+Monat	& month &mm, m \\
+Tag des Jahres & dayofyear &	dy, y \\
+Tag	& day &dd, d \\
+Woche &	week& wk, ww \\
+Stunde &	hour & hh \\
+Minute & minute& mi, n \\
+Sekunde &	second & ss, s \\
+Millisekunden &	millisecond & ms \\ \bottomrule
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Beispiel \sql{DATEDIFF}},label={funktionen:datediff2}]
+Select DATEDIFF(yy,Geburtstag,GETDATE()) from personen 
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{DATEDIFF}
+
+\subsubsection{GETDATE()}
+
+gibt das aktuelle Datum im \sql{datetime} Format zurück.
+
+\subsection{RANK Funktionen}
+
+% http://msdn.microsoft.com/en-us/library/ms189798.aspx
+
+\subsubsection{RANK()}\index{RANK}
+
+\subsubsection{DENSE\textunderscore RANK()} \index{DENSE\textunderscore RANK}
+
+\subsubsection{NTILE()} \index{NTILE}
+
+\subsubsection{ROW\textunderscore NUMBER()} \index{ROW\textunderscore NUMBER}
+
+\subsection{Mathefunktionen}
+
+\subsubsection{ABS(n)}
+\index{ABS}
+\index{Mathefunktionen!ABS}
+
+Gibt den absoluten Wert (ohne Vorzeichen) des Ausdrucks $n$ zurück.
+
+\subsubsection{ACOS(n)}
+\index{ACOS}
+\index{Mathefunktionen!ACOS}
+
+Berechnet den Arcus Cosinus von $n$.
+
+\subsubsection{ASIN(n)}
+\index{ASIN}
+\index{Mathefunktionen!ASIN}
+
+Berechnet den Arcus Sinus von $n$.
+
+\subsubsection{ATAN(n)}
+\index{ATAN}\index{Mathefunktionen!ATAN}
+
+Berechnet den Arcus Tangens von $n$.
+
+\subsubsection{ATN2(n,m)}\index{ATN2}\index{Mathefunktionen!ATN2}
+
+Berechnet den Arcus Tangens von $n/m$.
+
+\subsubsection{CEILING(n)}\index{CEILING}\index{Mathefunktionen!CEILING}
+
+Berechnet den kleinsten ganzzahligen Wert, der größer oder gleich $n$ ist.
+
+\subsubsection{COS(n)}\index{COS}\index{Mathefunktionen!COS}
+
+Berechnet den Kosinus von $n$.
+
+\subsubsection{COT(n)}\index{COT}\index{Mathefunktionen!COT}COT(n)
+
+Berechnet den Kotangens von $n$.
+
+\subsubsection{DEGREES(n)}\index{DEGREES}\index{Mathefunktionen!DEGREES}
+
+Konvertiert Radian in Grad.
+
+\subsubsection{EXP(n)}\index{EXP}\index{Mathefunktionen!EXP}
+
+Berechnet den Wert $e^n$.
+
+\subsubsection{FLOOR(n)}\index{FLOOR}\index{Mathefunktionen!FLOOR}
+
+Berechnet den größten ganzzahligen Wert, der kleiner gleich der Zahl $n$ ist
+
+\subsubsection{LOG(n)}\index{LOG}\index{Mathefunktionen!LOG}
+
+Berechnet den natürlichen Logarithmus der Zahl $n$.
+
+\subsubsection{LOG10(n)}\index{LOG10}\index{Mathefunktionen!LOG10}
+
+Berechnet den dekadischen Logarithmus von $n$.
+
+
+\subsubsection{PI()}\index{PI}\index{Mathefunktionen!PI}
+
+Gibt den Wert von Pi zurück.
+
+\subsubsection{POWER(x,y)}\index{POWER}\index{Mathefunktionen!POWER}
+
+Berechnet $x^y$.
+
+\subsubsection{RADIANS(n)}\index{RADIANS}\index{Mathefunktionen!RADIANS}
+
+Konvertiert Grad nach Radian.
+
+\subsubsection{RAND}\index{RAND}\index{Mathefunktionen!RAND}
+
+Gibt eine zufällige Zahl aus [0,1] zurück.
+
+
+\subsubsection{ROUND(n, p,[t])}\index{ROUND}\index{Mathefunktionen!ROUND}
+
+Rundet den Wert der Zahl $n$ mit der Präzision $p$. Positive Werte von $p$ runden rechts vom Dezimalpunkt, negative Werte links vom Dezimalpunkt. Der Parameter $t$ ist optional und bewirkt ein Abschneiden der Zahl nach $t$ Stellen.
+
+\subsubsection{ROWCOUNT\textunderscore BIG}\index{ROWCOUNT\textunderscore BIG}\index{Mathefunktionen!ROWCOUNT\textunderscore BIG}
+
+Gibt die Anzahl der Zeilen zurück, die vom letzten T-SQL Kommando betroffen waren.
+
+\subsubsection{SIGN(n)}\index{SIGN}\index{Mathefunktionen!SIGN}
+
+Gibt das Vorzeichen von $n$ zurück: $+1$ für positive Werte, $-1$ für negative Werte und $0$ für $0$.
+
+\subsubsection{SIN(n)}\index{SIN}\index{Mathefunktionen!SIN}
+
+Berechnet den Sinus von $n$.
+
+\subsubsection{SQRT(n)}\index{SQRT}\index{Mathefunktionen!SQRT}
+
+Berechnet die Quadratwurzel von $n$.
+
+\subsubsection{SQUARE(n)}\index{SQUARE}\index{Mathefunktionen!SQUARE}
+
+Berechnet das Quadrat von $n$.
+
+\subsubsection{TAN(n)}\index{TAN}\index{Mathefunktionen!TAN}
+
+Berechnet den Tangens von $n$.
+
+
+
+
+\subsection{Metadatenfunktionen}
+
+\subsubsection{DB\textunderscore NAME()} \index{DB\textunderscore NAME}
+\index{Metadatenfunktionen!DB\textunderscore NAME}
+
+\subsubsection{DB\textunderscore ID()} \index{DB\textunderscore ID}
+\index{Metadatenfunktionen!DB\textunderscore ID}
+
+(Seite 155 im AW Buch)
+
+\subsection{Sicherheitsfunktionen}
+
+\subsubsection{USER\textunderscore NAME()} \index{USER\textunderscore NAME}
+\index{Sicherheitsfunktionen!USER\textunderscore NAME}
+
+ 
+\subsubsection{SUSER\textunderscore NAME()} \index{SUSER\textunderscore NAME}
+\index{Sicherheitsfunktionen!SUSER\textunderscore NAME}
+
+
+\subsubsection{IS\textunderscore MEMBER()} \index{IS\textunderscore MEMBER}
+\index{Sicherheitsfunktionen!IS\textunderscore MEMBER}
+
+
+ 
+\subsection{String-Funktionen}
+
+ab Seite 156
+
+\subsubsection{ASCII(\vari{char})} \index{ASCII} \index{String-Funktionen!ASCII} Gibt den ASCII-Zahlenwert für das Zeichen \vari{char} zurück
+
+\subsubsection{CHAR(\vari{Zahl})} \index{CHAR} \index{String-Funktionen!CHAR} Gibt das ASCII-Zeichen für \vari{Zahl} aus.
+
+\subsubsection{LEFT(\vari{String},\vari{Zahl})} \index{LEFT} \index{String-Funktionen!LEFT}
+
+Gibt die linken \vari{Zahl} Zeichen von \vari{String} zurück.
+
+\subsubsection{RIGHT(\vari{String},\vari{Zahl})} \index{RIGHT} \index{String-Funktionen!RIGHT}rechts
+
+Gibt die rechten \vari{Zahl} Zeichen von \vari{String} zurück.
+
+\subsubsection{CHARINDEX(\vari{String1},\vari{String2})} \index{CHARINDEX} \index{String-Funktionen!CHARINDEX} \index{Strings!Suche} \index{Suche}
+
+Gibt die Position von \vari{String1} in \vari{String2} zurück. Wird \vari{String1} nicht gefunden, wird 0 ausgegeben.
+
+\subsubsection{LEN(\vari{String})} \index{LEN} \index{String-Funktionen!LEN} Gibt die Länge von String \vari{String} zurück.
+
+\subsubsection{LOWER(\vari{String})} \index{LOWER} \index{String-Funktionen!LOWER} Wandelt den übergebenen String in Kleinbuchstaben um.
+
+\subsubsection{LTRIM(\vari{String})} \index{LTRIM} \index{String-Funktionen!LTRIM} Entfernt im String \vari{String} eventuell vorhandene Leerzeichen links.
+
+\subsubsection{REPLICATE(\vari{String},\vari{Zahl})} \index{REPLICATE} \index{String-Funktionen!REPLICATE}
+
+Wiederholt den Ausdruck \vari{String} \vari{Zahl}-mal. 
+
+\subsubsection{RTRIM(\vari{String})} \index{RTRIM} \index{String-Funktionen!RTRIM} Entfernt im String \vari{String} eventuell rechts vorhandene Leerzeichen.
+
+\subsubsection{SOUNDEX(\vari{String})} \index{SOUNDEX} \index{String-Funktionen!SOUNDEX} 
+
+Gibt einen phonetischen Wert für den Klang bzw. die Aussprache eines Ausdrucks, der nützlich sein kann, um ähnliche klingende Wörter zu finden. Alle vier Aufrufe in Listing \ref{temptabellen:soundex1} geben M600 zurück.
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={\sql{SOUNDEX} Beispiel},label={temptabellen:soundex1}]
+SELECT SOUNDEX('meyer'); 
+SELECT SOUNDEX('meier');
+SELECT SOUNDEX('maier');
+SELECT SOUNDEX('mayer');
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
+
+\subsubsection{SPACE(im String \vari{Zahl})} \index{SPACE} \index{String-Funktionen!SPACE}
+
+Gibt im String \vari{Zahl} Leerzeichen zurück.
+
+\subsubsection{STR(\vari{String})} \index{STR} \index{String-Funktionen!STR} wandelt \vari{String} in eine Zahl um. Bei nicht konvertierbaren Strings wird eine Fehlermeldung zurückgegeben.
+
+\subsubsection{SUBSTRING(\vari{String},\vari{Zahl1},\vari{Zahl2})} \index{SUBSTRING} \index{String-Funktionen!SUBSTRING}
+
+Gibt aus \vari{String} den Teilstring \vari{Zahl1} bis \vari{Zahl2} zurück.
+
+\subsubsection{UPPER(\vari{String})} \index{UPPER} \index{String-Funktionen!UPPER}Text in Großbuchstaben
+
+Wandelt den übergebenen String in Großbuchstaben um.
+
+\subsection{Systemfunktionen}
+
+\subsubsection{CONVERT()} \index{CONVERT} \index{Systemfunktionen!CONVERT}
+
+
+Konvertiert zwischen verschiedenen Typen:
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\insertsql{\sql{CONVERT} Beispiel}{./codes/dateformats.sql}{convert:date12}
+\end{minipage}
+\end{center}\index{Datum formatieren} \index{CONVERT!Datum}
+
+
+
+
+\subsubsection{CAST()} \index{CAST} \index{Systemfunktionen!CAST} 
+
+\section{Views}
+
+\section{Temporäre Tabellen und \sql{TABLE} Variablen} \index{TABLE!}
+
+Temporäre Tabellen werden mit vorangestelltem \sql{\#} angelegt und sind nur in der aktuellen Session des SQL Servers sichtbar. Sobald die Session beendet wird oder ein explizites Drop ausgeführt wird, werden die temporären Tabellen gelöscht. Es gibt auch global verfügbare temporäre Tabellen, diese werden mit führendem \sql{\#\#} angelegt.
+
+Der wesentliche Unterschied zu normalen Tabellen ist, dass keine \sql{FOREIGN KEY}  Constraints auf einer temporären Tabelle angelegt werden können. 
+
+Wenn unterschiedliche Nutzer die gleiche temporäre Tabelle anlegen, erhält jeder Nutzer seine eigene Tabelle. Temporäre Tabellen, die innerhalb einer Stored Procedure \index{Stored Procedure} angelegt werden, werden am Ende der Prozedurausführung automatisch gelöscht. 
+
+Wenn die Stored Procedure A eine temporäre Tabelle anlegt und die SP B aufruft, kann B die temporäre Tabelle benutzen. Als 'good practice' gilt, erstellte temporäre Tabellen explizit zu löschen.  
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Nutzung einer temporären Tabelle},label={temptabellen:tabellen1}]
+CREATE TABLE #vornamen (
+ID int,
+vorname char(30))
+
+select name
+from tempdb..sysobjects 
+where name like '#vornamen%'
+
+drop table #vornamen
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{CREATE!TABLE} \index{Tabellen!Temporäre}
+
+Ab SQL Server 2000 gibt es den Variablentyp \sql{TABLE}. \index{Variablentypen!TABLE} Variablen dieses Typs sind temporären Tabellen ähnlich, sind aber flexibler und und werden ausschließlich im RAM gespeichert. 
+
+Für die Wahl, ob temporüre Tabelle oder \sql{TABLE} Variable gilt nach \cite{sqlteam:temptables} und \cite{odetocode:table} folgendes:
+
+\begin{compactitem}
+ \item Bei weniger als 100 Zeilen ist eine TABLE Variable normalerweise effizienter, da der SQL Server für TABLE Variablen keine Statistik anlegt.
+ \item TABLE Variablen 
+ \item Sobald ein Index benötigt wird, muss eine temporäre Tabelle genutzt werden.
+ \item Für temporäre Tabellen sind Indizes empfehlenswert, da sie die Anzahl der notwendigen Rekompilierungen verringern. TABLE Variablen innerhalb von Stored Procedures können weniger notwendige Rekompilierungen benötigen als temporäre Tabellen.
+\end{compactitem}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Nutzung einer \sql{TABLE} Variablen},label={temptabellen:table1}]
+DECLARE @vornamen TABLE (
+ID int,
+vorname char(30))
+
+INSERT INTO @vornamen (ID, vorname)
+SELECT 	ID, vorname
+FROM 	dbo.namen
+WHERE 	nachname = 'Schmidt'
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Nutzung einer \sql{TABLE} Variablen},label={temptabellen:table2}]
+DECLARE @MyTable TABLE(
+  ProductID int,
+  Price money CHECK(Price < 10.0))
+
+INSERT INTO @MyTable VALUES(1,1);
+INSERT INTO @MyTable VALUES(2,2);
+INSERT INTO @MyTable VALUES(3,3);
+INSERT INTO @MyTable VALUES(4,5);
+SELECT * FROM @MyTable; 
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
+
+
+\section{Cursors}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Einfaches Beispiel für einen  \sql{CURSOR}},label={cursors:cursors1}]
+DECLARE @temp char(10)
+
+DECLARE testcursor CURSOR FOR
+  Select name from tabelle where id = '12345' and BDATE>'30.09.2000'
+
+OPEN testcursor
+
+FETCH next FROM test INTO @temp
+  WHILE @@Fetch_Status = 0 BEGIN
+  print 'Hello'
+  FETCH next FROM test INTO @temp
+END
+
+CLOSE testcursor
+DEALLOCATE testcursor 
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{CURSOR}
+
+\section{Transaktionen}
+
+\cite{odetocode:table}
+ 
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Beispiel für eine Transaktion},label={transaction:transaction1}]
+DECLARE @ProductTotals TABLE(
+  ProductID int ,
+  Revenue money
+)
+
+BEGIN TRANSACTION
+  INSERT INTO @ProductTotals (ProductID, Revenue)
+  SELECT ProductID, SUM(UnitPrice * Quantity)
+  FROM  [Order Details]
+  GROUP BY ProductID
+ROLLBACK TRANSACTION
+
+SELECT COUNT(*) FROM @ProductTotals
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{Transaktionen} \index{TRANSACTION}
+
+\section{Stored Procedures} \index{Stored Procedure}
+
+Die Wikipedia \cite{wikip:sp} schreibt zu Stored Procedures:
+
+\begin{quote}
+Der Begriff Gespeicherte Prozedur (GP) oder englisch Stored Procedure (SP) bezeichnet eine Funktion bestimmter Datenbankmanagementsysteme. In einer Stored Procedure können ganze Abläufe von Anweisungen unter einem Namen gespeichert werden, die dann auf dem Datenbankserver zur Verfügung stehen und ausgeführt werden können. Eine SP ist somit ein eigenständiger Befehl, der eine Abfolge von gespeicherten Befehlen ausführt.
+
+Mittels Stored Procedures können häufiger verwendete Abläufe, die sonst durch viele einzelne Befehle vom Client ausgeführt werden würden, auf den Server verlagert werden, und durch einen einzigen Aufruf ausgeführt werden (siehe auch Client-Server-System). Mitunter wird dadurch die Leistung gesteigert, da weniger Daten zwischen Client und Datenbankserver ausgetauscht werden müssen und das Datenbankmanagementsystem häufig auf leistungsfähigeren Servern läuft.
+\end{quote}
+
+Zum Vergleich von Stored Procedures mit Funktionen siehe \cite{modi:2007}.
+
+\section{Variablen}
+
+SQL Server unterscheidet benutzerdefinierte und globale Variablen. Globale Variablen beginnen mit \sql{@@} und können nur ausgelesen, nicht jedoch verändert werden. \index{Variablen!Globale} 
+
+\begin{center}
+\captionsetup{type=table}
+\caption{Globale Variablen}
+\begin{tabular}{p{4cm}p{7cm}} \hline \hline 
+Variable & Erläuterung \\ \hline 
+@@LANGUAGE & Sprachversion des Servers \\
+@@NESTLEVEL & Schachtelungstiefe (maximal 32) \\
+@@SERVERNAME  & Namen des Servers \\
+@@VERSION & Programmversion des Servers \\
+@@ERROR & Wert der letzten Fehlermeldung \\
+@@FETCHSTATUS & bei Cursors genutzt. solange Wert = 0 kann noch ein weiterer Wert abgefragt werden. \\ \hline \hline
+\end{tabular}
+\end{center}
+
+\subsection{@@ERROR} \index{@@ERROR}
+
+Wenn der SQL Server ein statement erfolgreich ausführt, wird die globale Variable \sql{@@ERROR } auf $0$ gesetzt.
+
+Da @@ERROR nach jeder SQL Anweisung geleert und neu gesetzt wird, sollte sie unmittelbar nach fehlerträchtigen Anweisungen ausgewertet werden bzw. in einer lokalen Variablen gespeichert werden. 
+
+Listing \ref{variablen:error1} zeigt ein Beispiel für ein \sql{UPDATE} statement, das versucht einen negativen Wert in eine Spalte einzutragen.
+ 
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Beispiel für \sql{@@ERROR}},label={variablen:error1}]
+CREATE TABLE #temp
+CONSTRAINT
+
+INSERT INTO 
+
+
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{Variablen!globale}\index{@@ERROR}\index{CONSTRAINT}
+
+\subsection{Deklaration von Variablen}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Beispiel für benutzerdefinierte Variablen},label={variablen:ex1}]
+DECLARE @var AS int
+
+SET @var = 1;
+SELECT @var = (SELECT COUNT(*) FROM mitarbeiter);
+
+SELECT @var;
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{Variablen!benutzerdefinierte}\index{DECLARE}
+
+Bei der Zuweisung mehrerer Werte an Variablen ist es günstiger, SELECT zu nutzen:
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Beispiel für benutzerdefinierte Variablen},label={variablen:ex2}]
+SELECT
+ @nachname = nachname,
+ @vorname  = vorname
+FROM personen
+WHERE persID = 123;
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{Variablen!benutzerdefinierte}\index{SELECT}
+
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Beispiel für benutzerdefinierte Variablen},label={variablen:ex3}]
+DECLARE @abc int
+SET @abc = 1;
+
+IF @abc=1
+  PRINT 'Hallo'
+ELSE
+  PRINT 'WELT'
+
+SET @abc = 0;
+IF @abc=1
+  PRINT 'Hallo'
+ELSE
+  PRINT 'WELT'
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{Variablen!benutzerdefinierte}\index{SELECT}
+
+
+
+\subsection{Variablentypen}
+
+\begin{compactitem}
+
+ \item Character
+ \begin{compactitem}
+  \item \sql{CHAR(n)} \index{Datentyp!CHAR} \index{CHAR}
+
+   \begin{description}
+  	\item[Minimum:] 1 
+  	\item[Maximum:] 8000
+  	\item[ben. Platz:] 1 Byte pro Zeichen
+  \end{description}	
+
+
+  \item \sql{VARCHAR(n)} \label{VARCHAR} \index{VARCHAR}
+  \index{Datentyp!VARCHAR}
+  
+  \begin{description}
+  	\item[Minimum:] 1
+  	\item[Maximum:] 8000
+  	\item[ben. Platz:] 1 Byte pro Zeichen plus 2 Byte
+  \end{description}	
+
+  \item \sql{NCHAR(n)} \index{Datentyp!NCHAR} \index{NCHAR}
+
+   \begin{description}
+  	\item[Minimum:] 1
+  	\item[Maximum:] 4000
+  	\item[ben. Platz:] 2 Byte für jedes Zeichen.
+  \end{description}	
+
+  \item \sql{VARCHAR(MAX)} \index{Datentyp!VARCHAR}
+\index{VARCHAR}
+
+   \begin{description}
+  	\item[Minimum:] 1
+  	\item[Maximum:] 2,147,483,647
+  	\item[ben. Platz:] 
+  \end{description}	
+
+Ohne explizite Angabe der Länge werden 30 Zeichen genommen. 
+
+  \item \sql{NVARCHAR(n)} \index{Datentyp!NVARCHAR} \index{NVARCHAR}
+
+   \begin{description}
+  	\item[Minimum:] 
+  	\item[Maximum:] 
+  	\item[ben. Platz:] 
+  \end{description}	
+
+
+  \item \sql{NVARCHAR(MAX)} \index{Datentyp!NVARCHAR}
+\index{NVARCHAR}
+
+   \begin{description}
+  	\item[Minimum:] 1
+  	\item[Maximum:] 2,147,483,647
+  	\item[ben. Platz:] 2 Byte pro Zeichen plus 2 Byte
+  \end{description}	
+
+
+  \end{compactitem}
+
+ \item Datum/Uhrzeit
+ \begin{compactitem}
+ \item \sql{DATETIME} \index{Datentyp!DATETIME} \index{DATETIME}
+
+  \begin{description}
+  	\item[Minimum:] 1. Januar 1753
+  	\item[Maximum:] 31. Dezember 9999
+  	\item[ben. Platz:] Genauigkeit: 3,33 Millisekunden, 8 Byte (zwei 4-Byte integer Werte). Die ersten 4 Byte repräsentieren die Anzahl der Tage vor oder nach dem 1. Januar 1900. Die zweiten 4 Byte speichern die Tageszeit in Schritten von $1/3000$ Sekunden nach 0:00:00 Uhr. 
+  \end{description}	
+ \item \sql{SMALLDATETIME} \index{Datentyp!SMALLDATETIME}
+\index{SMALLDATETIME}
+
+  \begin{description}
+  	\item[Minimum:] 1. Januar 1900
+  	\item[Maximum:] 6. Juni 2079
+  	\item[ben. Platz:] Genauigkeit: 1 Minute, 4 Byte (ein integer). Die ersten 2 Byte enthalten die Anzahl der Tage nach dem 1. Januar 1900, die zweiten 2 Byte speichern die Tageszeit in Minuten nach 0:00:00 Uhr. 
+  \end{description}	
+
+\end{compactitem}
+
+ \item Zahlen
+\begin{compactitem}
+ \item \sql{DECIMAL(Genauigkeit, Dezimalstellen)} 
+ \index{Datentyp!DECIMAL} \index{DECIMAL}
+
+Genauigkeit = totale Anzahl an Stellen, links und rechts vom Dezimalzeichen. 
+
+Dezimalstellen = Anzahl der Stellen rechts vom Dezimalstellen. 
+
+\begin{compactitem}
+ \item Präzision 1--9: 5 Byte
+ \item Präzision 10--19: 9 Byte
+ \item Präzision 20--28: 13 Byte
+ \item Präzision 29--38: 17 Byte
+\end{compactitem}
+
+Die minimale Genauigkeit beträgt 1, die maximale Genauigkeit beträgt 38. Hinweis: Decimal entspricht Numeric. 
+
+ \item \sql{FLOAT(n)} \index{Datentyp!FLOAT} \index{FLOAT}
+ 
+   \begin{description}
+  	\item[Minimum:] 
+  	\item[Maximum:] 
+  	\item[ben. Platz:] 
+  \end{description}	
+  
+ \item \sql{REAL} \index{Datentyp!REAL} \index{REAL}
+ 
+   \begin{description}
+  	\item[Minimum:] -3.40E + 38 to -1.18E - 38, 0
+  	\item[Maximum:] 1.18E - 38 to 3.40E + 38
+  	\item[ben. Platz:] 4 Byte
+  \end{description}	
+
+Hinweis: Real ist äquivalent zu FLOAT(24). 
+  
+ \item \sql{BIGINT} \index{Datentyp!BIGINT} \index{BIGINT}
+ 
+   \begin{description}
+  	\item[Minimum:] -9,223,372,036,854,775,808
+  	\item[Maximum:] 9,223,372,036,854,775,807
+  	\item[ben. Platz:] 8 Byte
+  \end{description}	
+  
+ 
+ \item \sql{INT} \index{Datentyp!INT} \index{INT}
+ 
+   \begin{description}
+  	\item[Minimum:] -2,147,483,648
+  	\item[Maximum:] 2,147,483,647
+  	\item[ben. Platz:] 4 Byte
+  \end{description}	
+
+  
+ \item \sql{SMALLINT} \index{Datentyp!SMALLINT} \index{SMALLINT}
+ 
+   \begin{description}
+  	\item[Minimum:] -32,768
+  	\item[Maximum:] 32,767
+  	\item[ben. Platz:] 2 Byte 
+  \end{description}	
+
+ 
+ \item \sql{TINYINT} \index{Datentyp!TINYINT} \index{TINYINT}
+   \begin{description}
+  	\item[Minimum:] 0 
+  	\item[Maximum:] 255
+  	\item[ben. Platz:] 1 Byte
+  \end{description}	
+  
+ \end{compactitem}
+
+\item Währung
+\begin{compactitem}
+ \item \sql{MONEY} \index{Datentyp!MONEY} \index{MONEY}
+
+  \begin{description}
+  	\item[Minimum:] -922,337,203,685,477.5808
+  	\item[Maximum:] 922,337,203,685,477.5807
+  	\item[ben. Platz:] 8 Byte
+  \end{description}	
+
+ \item \sql{SMALLMONEY} \index{Datentyp!SMALLMONEY} \index{SMALLMONEY}
+
+  \begin{description}
+  	\item[Minimum:] -214,748.3648  
+  	\item[Maximum:] 214,748.3647
+  	\item[ben. Platz:] 4 Byte 
+  \end{description}	
+
+
+\end{compactitem}
+
+\item Boolean
+\begin{compactitem}
+ \item \sql{BIT} \index{Datentyp!BIT} \index{BIT}
+
+  \begin{description}
+  	\item[Minimum:] 0
+  	\item[Maximum:] 1
+  	\item[ben. Platz:] Bis zu 8 Bit Spalten werden zusammen in einer 1 Byte Spalte gespeichert, 9--16 in einer 2 Byt Spalte, etc. 
+  \end{description}	
+\end{compactitem}   
+   
+\item Text und Bilder
+\begin{compactitem}
+ \item \sql{TEXT} Veraltet. \index{Datentyp!TEXT} \index{TEXT}
+
+ \item \sql{NTEXT} Veraltet. \index{Datentyp!NTEXT} \index{NTEXT}
+ 
+ \item \sql{IMAGE} Veraltet. \index{Datentyp!IMAGE} \index{IMAGE}
+\end{compactitem}  
+
+
+\item Binär
+\begin{compactitem}
+ \item \sql{BINARY(n)} \index{Datentyp!BINARY} \index{BINRY}
+
+  \begin{description}
+  	\item[Minimum:] 1
+  	\item[Maximum:] 8000
+  	\item[ben. Platz:] 1 Byte pro Byte
+  \end{description}	
+ 
+ \item \sql{VARBINARY(n)} \index{Datentyp!VARBINARY} \index{VARBINARY}
+
+  \begin{description}
+  	\item[Minimum:] 1
+  	\item[Maximum:] 8000
+  	\item[ben. Platz:] 1 Byte pro Byte plus 2 Byte.
+  \end{description}	 
+ 
+\item \sql{VARBINARY(MAX)} \index{Datentyp!VARBINARY} \index{VARBINARY}
+
+ \begin{description}
+  	\item[Minimum:] 1
+  	\item[Maximum:] 2,147,483,647
+  	\item[ben. Platz:] 1 Byte pro Byte plus 2 Byte.
+  \end{description}	 
+
+\end{compactitem}
+   
+\item XML 
+\begin{compactitem}
+	 \item \sql{XML} \index{Datentyp!XML} \index{XML}
+\end{compactitem}
+
+\item Variante
+\begin{compactitem}
+ \item \sql{SQL\textunderscore VARIANT} \index{SQL\textunderscore VARIANT} \index{Datentyp!SQL\textunderscore VARIANT}
+\end{compactitem}
+\end{compactitem}
+
+
+Vorteile von Stored Procedures:
+
+      -       zentralisieren den T-SQL Code
+      -       reduzieren den Netzwerk-Traffic
+      -       fördern die Wiederverwendbarkeit von Code-Schnipseln
+      -       haben einen stabilisiereden Einfluss auf Antwortzeiten
+      -       sind förderlich für die Systemsicherheit, da der direkte Zugriff auf Tabellen ein Sicherheitsrisiko darstellen kann
+
+grundlegende Erstellung
+
+CREATE PROCEDURE name
+AS sql-statement
+GO
+
+und aufgerufen durch
+
+EXEC name
+
+Hinweis zur Namensvergabe: Eigene Stored Procedures sollten nicht mit sp\textunderscore beginnen, da sonst der SQL Server erst in den Systemtabellen nach der Prozedur sucht.
+
+Parametrisierte Stored Procedures
+
+Parametrisierte Stored Procedures werden wie folgt erstellt:
+
+CREATE PROCEDURE name
+(
+@param1 typ [=default]
+@param2 typ [=default]
+@param3 typ [=default]
+)
+AS sql-statement
+GO
+
+und aufgerufen durch
+
+EXEC name param1, param2, param3
+
+Ausgabe von Stored Procedures
+
+Mittels OUTPUT Parameter kann eine SP Werte an ihren Aufrufer geben, eine ad hoc Anfrage oder eine andere Stored Procedure.
+
+Beispiel?
+
+Ändern von existierenden Stored Procedures
+
+ALTER PROCEDURE name
+(
+@param1 typ [=default]
+@param2 typ [=default]
+@param3 typ [=default]
+)
+AS sql-statement
+GO
+
+Löschen von Stored Procedures
+
+DROP PROCEDURE name
+
+Automatische Ausführung beim Serverstart
+
+Über die SP sp\textunderscore procoption in der MASTER Datenbank des SQL Server 2005 lassen sich Gespeicherte Prozeduren ablegen, die beim Serverstart automatisch ausgeführt werden sollen.
+
+Aktivieren:
+
+EXE sp\textunderscore procoption @ProcName = 'name', @OptionName = 'startup', @OptionValue ='true'
+
+Deaktivieren über:
+
+EXE sp\textunderscore procoption @ProcName = 'name', @OptionName = 'startup', @OptionValue ='off'
+
+\section{Trigger}
+
+Ein Trigger ist eine gespeicherte Prozedur, die bei einer bestimmten Art der Änderungen (z. B. INSERT, UPDATE, DELETE) von Daten aufgerufen wird, das diese Änderung erlaubt, verhindert und/oder weitere Tätigkeiten vornimmt.
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Trigger, der nach dem \sql{INSERT} die Anzahl der Zeilen in der Tabelle ausgibt.},label={trigger:count}]
+CREATE TRIGGER personenTrigger	
+ON personen
+FOR INSERT
+AS
+	DECLARE @anzahl char(50);
+  SET @anzahl = (SELECT COUNT(*) from personen);
+  Print @anzahl + ' sind in der Datenbank.'; 
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{CREATE!TRIGGER} \index{TRIGGER}
+
+
+\section{Tipps, Tricks und Schnipsel}
+
+\subsection{IF und ELSE}
+
+\index{IF}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Kleines \sql{IF-ELSE} Beispiel},label={tricks:if1}]
+DECLARE @a float
+DECLARE @b float
+
+set @a = 0.1
+set @b = 0.05
+
+IF (SELECT @a) < (SELECT @b) BEGIN SELECT @a END ELSE BEGIN SELECT @b END
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{IF} 
+
+
+\subsection{Auf Großschreibweise prüfen}\index{ASCII}\index{Großbuchstaben}
+
+Das Problem, alle Namen finden zu wollen die komplett in Großbuchstaben geschrieben waren, lässt sich oft dahingehend vereinfachen, dass man alle Namen sucht, bei denen der zweite Buchstabe groß geschrieben wurde.
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={Nach Großbuchstaben suchen},label={tricks:ascii1}]
+SELECT [Name]
+FROM [DATABASE].[namestable]
+WHERE ASCII(SUBSTRING([NAME],2,1)) BETWEEN 65 AND 90
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
+
+\subsection{Summe von NULL-Werten bilden}
+
+Mit NULL Werten lässt sich schlecht rechnen da, wenn ein Operand NULL ist, die Berechnung auch NULL ergibt. Listing \ref{coalesce:coalesce1} zeigt, wie \sql{COALESCE} genutzt werden kann, um eine Summe von zwei Werten zu bilden, die NULL sein können. Sind beide Werte ungleich NULL, wird die Summe ausgegeben. Ist mindestens einer NULL, so wird versucht, nur @abc auszugeben. Ist @abc NULL, wird versucht @def auszugeben. Wenn @def ebenfalls NULL ist, wird 0 zurückgegeben.
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={\sql{COALESCE}  Beispiel},label={coalesce:coalesce1}]
+DECLARE @abc int
+DECLARE @def int
+DECLARE @ghi int
+
+SET @abc = 4;
+SET @def = null;
+SET @ghi = 2
+
+SELECT COALESCE(@abc+@def,@abc,@def,@ghi,0) 
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{COALESCE}
+
+Ein äquivalente Umsetzung mittels \sql{CASE} würde 
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={\sql{COALESCE} Beispiel mittels \sql{CASE}},label={coalesce:coalesce2}]
+DECLARE @abc int
+DECLARE @def int
+DECLARE @ghi int
+
+SET @abc = 4;
+SET @def = null;
+SET @ghi = 2
+
+SELECT CASE
+	WHEN (@abc IS NOT NULL) THEN @abc
+	WHEN (@def IS NOT NULL) THEN @def
+	WHEN (@ghi IS NOT NULL) THEN @ghi
+	ELSE 0
+END			
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{COALESCE} \index{CASE}
+
+
+\subsection{Datum umwandeln}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={},label={tricks:date1}]
+SELECT GETDATE() AS GETDATE, 
+CONVERT(varchar,GETDATE(),4)
+AS '2-stellig', 
+CONVERT(varchar,GETDATE(),104) AS '4-stellig'
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{GETDATE}\index{CONVERT}
+
+\subsection{Produkt eines Resultsets}\label{trick:produkt}
+
+SQL kennt keine \sql{PRODUCT} Funktion, aber Logarithmen kann diese jedoch nachgebildet werden. Beispiel: Das Produkt der Zahlen $1$ bis $10$ kann dargestellt werden als:
+
+\[10^{\left(\sum_{i=1}^{10}(\log(i))\right)}\]
+
+\paragraph{Beispiel}
+
+Das Produkt der Zahlen $1$ bis $5$ ist: $1\times2\times3\times4\times5=120$. Da wir das in SQL so direkt nicht ausrechnen können, bilden wir die Logarithmen:
+
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={R},caption={Rechenbeispiel in R (\url{http://r-project.org})},label={r:product}]
+log(1:5) #Logarithmus der Zahlen 1 bis 5
+[1] 0.0000000 0.6931472 1.0986123 1.3862944 1.6094379
+
+sum(log(1:5)) # Aufsummieren
+[1] 4.787492
+
+exp(sum(log(1:5))) # Summe in den Exponenten heben
+[1] 120
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
+
+
+
+
+
+\subsection{Ergebniszeilen beschränken}\label{top1}
+
+Das \sql{LIMIT(Zeilen,Anfang)} von MySQL gibt es in T-SQL nicht, es lässt sich aber nachbauen. 
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={\sql{SELECT} Abfrage um die Ergebniszeilen 5 bis 10 eines Resultsets zu erhalten},label={tricks:top1}]
+SELECT TOP 10 *
+FROM (SELECT TOP 14 * FROM tabelle ORDER BY spalte) AS result
+ORDER BY spalte DESC
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{TOP}
+
+
+
+\subsection[Die letzten n Zeilen ausgeben]{Die letzten $n$ Zeilen ausgeben}
+
+Listing \ref{tricks:top1} lässt sich auch leicht abwandeln, um die letzten $n$ Zeilen einer Tabelle auszugeben.
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={\sql{SELECT} Abfrage um die letzten 100 Ergebniszeilen eines Resultsets zu erhalten},label={tricks:top2}]
+SELECT TOP 100 *
+FROM (SELECT TOP (SELECT COUNT(*) FROM Tabelle) * FROM Tabelle ORDER BY 1) 
+AS result
+ORDER BY 1 DESC
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{TOP}
+
+\subsection{Ergebnisspalten zusammenfassen}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\insertsql{Zusammenfassen von Spalten}{./codes/spaltenzusammenfassen.sql}{tricks:rtrim1}
+\end{minipage}
+\end{center}\index{RTRIM}\index{LTRIM}
+
+\subsection{Temporäre Tabellen auf Existenz prüfen 1}
+
+Folgendes Skript löscht die temporäre Tabelle \sql{\#vornamen} falls diese existiert und legt die Tabelle neu an. Damit verhindert man Fehlermeldungen von nicht ausführbaren \sql{DROP TABLE}.
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\insertsql{Auf Existenz einer temporären Tabelle prüfen}{./codes/temptabellen1.sql}{tricks:temp1}
+\end{minipage}
+\end{center}\index{TABLE!CREATE}\index{Tabellen!Temporäre}
+
+\subsection{Temporäre Tabellen auf Existenz prüfen 2}
+
+Folgendes Skript schaut, ob eine \sql{OBJECT\textunderscore ID} für \sql{tempdb..\#temptabelle} existiert. Falls diese existiert, wird sie gelöscht. 
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\insertsql{Auf Existenz einer temporären Tabelle prüfen}{./codes/temptabellen2.sql}{tricks:temp2}
+\end{minipage}
+\end{center}\index{OBJECT\textunderscore ID} \index{EXISTS}
+
+\subsection{Datumsformate}
+
+Das folgende SQL Skript gibt eine Liste der vom SQL Server 2005 unterstützten Datumsformate. \index{CONVERT} \index{GETDATE} 
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\insertsql{\sql{CONVERT} Beispiel}{./codes/dateformats.sql}{convert:date1}
+\end{minipage}
+\end{center}
+
+\begin{center}
+\captionsetup{type=table}
+\caption{Datumsformate}
+\begin{tabular}{cp{5cm}} \\ \toprule
+Format & Ausgabe \\ \midrule
+100 & Mär 11 2009  8:22PM \\
+101 & 03/11/2009    \\
+102 & 2009.03.11    \\
+103 & 11/03/2009   \\
+104 & 11.03.2009   \\
+105 & 11-03-2009   \\
+106 & 11 Mär 2009  \\
+107 & Mär 11, 2009    \\
+108 & 20:22:48  \\
+109 & Mär 11 2009  8:22:48:670PM  \\
+110 & 03-11-2009  \\
+111 & 2009/03/11   \\
+112 & 20090311  \\
+113 & 11 Mär 2009 20:22:48:670 \\
+114 & 20:22:48:670    \\
+120 & 2009-03-11 20:22:48   \\
+121 & 2009-03-11 20:22:48.670  \\
+126 & 2009-03-11T20:22:48.670  \\
+130 & 15 ???? ????? 1430  8:22:48:67 \\
+131 & 15/03/1430  8:22:48:670PM  \\ \bottomrule
+\end{tabular}
+\end{center}
+
+
+\subsection{Behandlung von UNICODE}
+
+Der SQL Server besitzt drei Spaltentypen, um UNICODE-kodierte Strings zu verarbeiten:
+
+\begin{compactitem}
+ \item NCHAR \index{}
+ \item NVARCHAR \index{}
+ \item NTEXT \index{}
+\end{compactitem}
+
+Wenn eine Spalte als UNICODE spezifiziert wurde, muss man dem SQL Server bei \textbf{jedem} Kommando sagen, dass nachfolgende Strings UNICODE-kodiert sind. Dies geschieht über \sql{N}.
+
+Beispiel: Die zu \sql{OBJECT\textunderscore ID} gehörige Spalte ist UNICODE-kodiert, daher müssen wir dem String ein \sql{N} voranstellen. 
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={UNICODE Behandlung},label={tricks:unicode1}]
+IF OBJECT_ID (N'tempdb..#temptabelle') IS NOT NULL
+DROP TABLE #temptabelle
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{UNICODE}\index{N}\index{OBJECT\textunderscore ID}
+
+\subsection{SQL Statements generieren}
+
+Zum Debuggen ist es manchmal hilfreich, eine Stored Procedure für jede Zeile eines Resultsets getrennt aufzurufen. Die notwendigen SQL statements lassen sich mit einem ordentlichen Editor (\url{http://www.ultraedit.com}) generieren, es geht aber auch in T-SQL.
+
+In Listing \ref{tricks:gen1} gehen wir von einem Feld \sql{PersonenID} aus, das wir als Parameter zusammen mit den weiteren Parametern \sql{1} und \sql{Juni} an die Stored Procedure \sql{BerechneGehalt} übergeben. \vspace{1em}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={exec String generieren},label={tricks:gen1}]
+SELECT 'exec BerechneGehalt '''+CAST(PersonenID as VARCHAR(3))+''', 0, ''Juni''' 
+FROM [dbo].[GEHALT] 
+\end{lstlisting}
+\end{minipage}
+\end{center}\index{STORED PROCEDURE} \index{CAST}
+
+\subsection{Zeilen zu Spalte}
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\insertsql{Zeilen zu Spalte}{./codes/rowstocolumn.sql}{tricks:rowcol11}
+\end{minipage}
+\end{center}\index{Zeilen!Zeilen zu Spalte}
+
+
+
+\subsection{Loggen eines Update-Prozesses}
+
+Ausgehend von der Aufgabenstellung, nur Zeilen zu aktualisieren, die NULL sind und existierende Werte zu behalten, hier ein cleveres Beispiel aus der \hint{microsoft.public.de.sqlserver} Newsgroup.
+
+Es nutzt die Tatsache, dass \hint{OUTPUT} Informationen zu INSERT-, UPDATE-, DELETE- oder MERGE-Anweisungen zurückgeben kann oder in einer LOG-Tabelle speichern kann. Wie funktioniert es:
+
+\begin{enumerate}
+ \item Es wird eine Tabellenvariable deklariert, die zwei Variablen (ID und Jahr) aufnimmt.
+ \item Es werden sechs Datensätze eingefügt, drei davon NULL.
+ \item Die Datensätze werden mit 2010 aktualisiert, wenn sie NULL sind, ansonsten mit dem existierenden Wert.
+ \item Jetzt kommt die \hint{OUTPUT}-Routine:
+\begin{enumerate}
+ \item Wenn der gelöschte (überschriebene) Wert dem eingefügten Wert entspricht, wird die "`Jahr enthielt\ldots"' Zeile ausgegeben
+ \item ansonsten die "`Jahr auf\ldots"' Zeile
+ \end{enumerate}
+\end{enumerate}
+
+
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\begin{lstlisting}[language={SQL},caption={},label={tricks:output1}]
+create table #t(id int identity(1,1) 
+primary key not NULL, jahr char(4) NULL)
+
+insert into #t
+select NULL union all
+select NULL union all
+select NULL union all
+select '2001' union all
+select '2002' union all
+select '2003'
+
+update #t set
+   jahr = case
+           when jahr is NULL then '2010'
+           else jahr
+       end
+output
+   case when deleted.jahr = inserted.jahr 
+        then 'id ' + cast(inserted.id as varchar(12)) + ' jahr enthielt Wert ' + deleted.jahr
+       else 'id ' + cast(inserted.id as varchar(12)) + ' jahr auf Wert ' + inserted.jahr + ' gesetzt'
+   end
+
+drop table #t \end{lstlisting}
+\end{minipage}
+\end{center}\index{OUTPUT} \index{LOG-File} 
+
+
+
+
+
+\subsection{Datensatz filtern}
+
+Bei Datensätzen, die in einem Merkmal identisch sind und von denen man nur eine Zeile benötigt, lässt sich mit folgendem Code die Anzahl der doppelten Zeilen ausgeben (und gegebenenfalls filtern).
+
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\insertsql{\sql{ROWNUMBER/PARTITION} Beispiel}{./codes/rownumber.sql}{tricks:rownumber1}
+\end{minipage}
+\end{center}\index{ROW\textunderscore NUMBER}\index{PARTITION}
+
+
+\subsection{Kumulative Summen berechnen}
+
+Kumulative Summen lassen sich einfach mit dem folgenden Skript berechnen. Zu jedem Wert der amount-Spalte (t1) wird die Summe aller amount-Zeilen (t2)ausgegeben, deren ID kleiner als t1.
+
+\begin{center}
+\begin{minipage}{\lwidth\textwidth}
+\insertsql{Kumulative Summen berechnen}{./codes/cumsum.sql}{tricks:cumsum}
+\end{minipage}
+\end{center}\index{OBJECT\textunderscore ID} \index{Summe!kumulativ}
+
+
+\section{Neuerungen im SQL Server 2008}
+
+Aus dem i'x Artikel \cite{ix} die wesentlichsten Neuerungen im SQL Server 2008:
+
+\subsection{Überblick}
+
+\begin{compactitem}
+ \item Datenbankmodul
+ 
+ \begin{compactitem}
+  \item bessere Kommunikation bei Spiegelung, automatische Seitenreparatur bei Spiegelung
+  \item Verwaltung: SQL Audit (Überwachung von Datenbankereignissen), Komprimierung der Sicherung, automatisches Ablegen geänderter Daten in relationaler Form, zentraler Verwaltungsserver möglich, Hinzufügen von CPUs im laufenden Betrieb, verbesserte Kontrolle der Ressourcenzuteilung, richtlinienorientierte Verwaltung, T-SQL Debugger und Intellisense im Management Server
+  \item Programmierbarkeit: komprimierte Speicherung von Tabellen und Indizes, Speichern von Daten in Dateien (Filestream), bessere Performance bei Spalten mit vielen NULL-Einträgen, Datums- und Uhrzeitdatentypen, Datentyp für hierarchische Daten, Geodaten, GROUP-BY-Optionen mit ROLLUP und CUBE, MERGE
+  \item Sicherheit: transparente Datenverschlüsselung, externe Schlüsselverwaltung
+  \end{compactitem}
+ 
+ \item Integration Services
+ 
+ \begin{compactitem}
+  \item VSTA: neue Skriptumgebung
+  \item Datenprofilerstellungs-Task und Datenprofil-Viewer
+  \end{compactitem}
+ 
+ \item Analysis Services
+
+ \begin{compactitem}
+  \item Vereinfachung im Design von Aggregaten, Cubes und Dimensionen
+  \item Personalisierungserweiterung
+  \item Partitionierung von Trainings- und Testdaten
+  \item Verbesserung des Time-Series-Algorithmus
+  \end{compactitem}
+ 
+ \item Reporting Services
+
+ \begin{compactitem}
+  \item Berichterstellung: erweiterter Grafikdatenbereich, Messgeräte- und Tablixdatenbereich
+  \item Rendering: neu als Word-Dokument, Excel mit Unterberichten, CSV, einheitliche Paginierung
+  \item Abhängigkeit vom IIS beseitigt, neues Tool für Berichtsserverkonfiguration
+ \end{compactitem}
+ 
+ \end{compactitem}
+
+\section{E-Mail Setup}
+
+In \cite{email:setup} findet sich eine übersichtliche Anleitung, wie man dem SQL Server 2008 den Versand von E-Mails beibringt. Im folgenden eine kurze Zusammenfassung, was konfiguriert werden muss, damit der SQL Server über Gmail sendet.
+
+Hinweis: Der SQL Server Express unterstützt den Versand von E-Mails nicht. Es gibt aber Möglichkeiten, die benötigte Funktionalität nachzurüsten:
+
+\begin{itemize}
+	\item via \enquote{Import} der benötigten Dateien: \url{http://weblogs.sqlteam.com/mladenp/archive/2007/07/01/60245.aspx}
+	\item via CLR: \url{http://www.sqlservercentral.com/articles/SQL+Server+Express/71341/}
+\end{itemize}
+
+\subsection{Neue Datentypen}
+
+\begin{compactitem}
+ \item date
+ \item time
+ \item datetime2 (speichert jetzt Nanosekunden)
+ \item datetimeoffset
+ \item geometry für 2D-Koordinatensysteme (UDT)
+ \item geography für geografische Daten (UDT)
+ \item hierarchyid für hierarchische Daten (UDT)
+\end{compactitem}
+
+\printindex
+
+\nocite{*}
+
+\printbibliography
+
+
+\end{document}
