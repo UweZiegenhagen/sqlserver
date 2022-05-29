@@ -6,7 +6,7 @@
 % arara: pdflatex: {shell: yes}
 
 \documentclass[12pt,ngerman,a4paper,index=totoc,twoside]{scrartcl}
-\usepackage[utf8]{inputenc}
+
 \usepackage[T1]{fontenc}
 \usepackage{xcolor}
 \usepackage{graphicx}
@@ -48,18 +48,15 @@
     {~}{{\textasciitilde}}1
 }
 
-
-\usepackage[utopia]{mathdesign}
-
+\usepackage{lmodern}
 \usepackage{microtype} 
-\renewcommand{\familydefault}{\sfdefault}
-\usepackage[scaled=0.9]{helvet}
+%\usepackage[scaled=0.9]{helvet}
 
 
 %\usepackage[style=authoryear,hyperref=true,natbib=true,sorting=nyt,block=space]{biblatex}
-\usepackage[style=authortitle-icomp,backend=biber]{biblatex}%
+\usepackage[backend=biber]{biblatex}%
 \usepackage[babel,german=guillemets]{csquotes}
-\bibliography{bibliography}
+\addbibresource{bibliography.bib}
 
 %\newcommand{\code}[1]{\textattachfile{#1}{\textcolor{blue}{CODE}}}
 %\newcommand{\code}[1]{\textattachfile{#1}{\protect\raisebox{-0.13em}{\protect\includegraphics{sql_fileextension.pdf}}}}
@@ -71,8 +68,6 @@
 \definecolor{hint}{RGB}{191,63,0}
 
 \newcommand{\vari}[1]{\textless#1\textgreater}
-
-
 
 \definecolor{hellgelb}{rgb}{1,1,0.8}
 \definecolor{colKeys}{rgb}{0,0,1}
@@ -137,7 +132,6 @@
   pdfpagemode=UseNone,  % PDF-Viewer startet ohne Inhaltsverzeichnis et.al.
   pdfstartview=FitH} % PDF-Viewer benutzt beim Start bestimmte Seitenbreite
 
-%\hypersetup{% �=\304; �=\326; �=\334; �=\344; �=\366; �=\374; �=\377
 %  pdftitle={SQL Server Tutorial},
 %  pdfauthor={Uwe Ziegenhagen},
 %  pdfsubject={Microsoft SQL Server},
@@ -150,6 +144,29 @@
 
 \usepackage{makeidx}
 \makeindex 
+
+\usepackage{hyperref}
+\hypersetup{
+    bookmarks=true,                     % show bookmarks bar
+    unicode=true,                      % non - Latin characters in Acrobat's bookmarks
+    pdftoolbar=true,                        % show Acrobat's toolbar
+    pdfmenubar=true,                        % show Acrobat's menu
+    pdffitwindow=false,                 % window fit to page when opened
+    pdfstartview={FitH},                    % fits the width of the page to the window
+    pdftitle={SQL Server und T-SQL},                        % title
+    pdfauthor={Uwe Ziegenhagen},                 % author
+    pdfsubject={T-SQL},                   % subject of the document
+    pdfcreator={LaTeX},                   % creator of the document
+    pdfproducer={pdflatex},             % producer of the document
+    pdfkeywords={T-SQL},   % list of keywords
+    pdfnewwindow=true,                  % links in new window
+    colorlinks=true,                        % false: boxed links; true: colored links
+    linkcolor=blue,                          % color of internal links
+    filecolor=blue,                     % color of file links
+    citecolor=blue,                     % color of file links
+    urlcolor=blue                        % color of external links
+}
+
 
 \begin{document}
 \maketitle
@@ -1914,7 +1931,10 @@ Hinweis: Der SQL Server Express unterstützt den Versand von E-Mails nicht. Es g
 
 \nocite{*}
 
-\printbibliography
+\printbibliography[title={Artikel},type=article]
 
+\printbibliography[title={Bücher},type=book]
+
+\printbibliography[title={Online-Artikel},type=online]
 
 \end{document}
