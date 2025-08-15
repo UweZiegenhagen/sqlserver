@@ -1,0 +1,73 @@
+%!TEX TS-program = Arara
+% arara: pdflatex: {shell: yes}
+\documentclass[aspectratio=169,ngerman]{beamer}
+
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+\usepackage{babel}
+\usepackage{graphicx}
+\usepackage{csquotes}
+\usepackage{xcolor}
+
+\author{Dr. Uwe Ziegenhagen}
+\title{SQL Tutorial}
+
+
+\begin{document}
+
+\begin{frame}
+
+\maketitle
+
+\end{frame}
+
+\begin{frame}
+\frametitle{This Tutorial}
+
+\begin{itemize}
+\item The focus of this tutorial is on selecting data
+\item Not in scope are:
+\begin{itemize}
+	\item Creation of databases, tables, view
+	\item Insertions, updates or deletions of data
+\end{itemize}
+\item Database system in scope: Microsoft SQL Server 2021
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Sample database}
+
+\begin{itemize}
+	\item Sample database for a internet shop
+	\item Few tables for customers, orders, sales personnel
+	\item Tables:
+	\begin{itemize}
+		\item Products
+		\item Orders
+		\item Customers
+		\item Addresses
+		\end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Customers}
+
+\textbf{Fields}
+
+\begin{itemize}
+\item Customer number
+\item First name
+\item Last name
+\item Street 
+\item Postcode
+\item City
+\item Country
+\end{itemize}
+\end{frame}
+
+
+\end{document}

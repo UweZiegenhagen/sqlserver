@@ -11,3 +11,5 @@
 *.xml
 *.gz
 *.toc
+*.nav
+*.snm
